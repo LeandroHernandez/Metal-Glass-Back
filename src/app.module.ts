@@ -34,7 +34,8 @@ import { MailService } from '@sendgrid/mail';
       envFilePath: ['.env.development'],
       isGlobal: true,
     }),
-    MongooseModule.forRoot(process.env.URI_MONGODB, {
+    // MongooseModule.forRoot(process.env.URI_MONGODB, {
+    MongooseModule.forRoot(`mongodb://mongo:FVrlziijDSC4jI8LAmOW@containers-us-west-31.railway.app:5766?authSource=admin`, {
       // useCreateIndex: true,
       // useFindAndModify: false,
     }),
