@@ -16,7 +16,7 @@ import { LocalStrategy } from './strategies/local.strategy';
       secret: `${process.env.JWT_SECRET}`,
       signOptions: {
         expiresIn: '12h',
-        audience: 'https://turno.com',
+        audience: 'https://metalGlass.com',
         //
         // expiresIn: `${process.env.EXPIRES_IN}`,
         // audience: `${process.env.APP_URL}`,

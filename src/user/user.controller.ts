@@ -1,48 +1,38 @@
-// import {
-//   Body,
-//   Controller,
-//   Delete,
-//   Get,
-//   HttpException,
-//   HttpStatus,
-//   Param,
-//   Post,
-//   Put,
-//   UseGuards,
-// } from '@nestjs/common';
 import {
   Body,
   Controller,
   Delete,
   Get,
-  HttpException,
-  HttpStatus,
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 // import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AppointmentDTO } from 'src/appointment/dto/appointment.dto';
-// import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { IEstablishment } from 'src/common/interfaces/establishment.interface';
-import { ISubscription } from 'src/common/interfaces/subscription.interface';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+// import { IAssignment } from 'src/common/interfaces/assignment.interface';
+import { IEmployee } from 'src/common/interfaces/employee.interface';
+import { IPhoto } from 'src/common/interfaces/photo.interface';
+import { IProduct } from 'src/common/interfaces/product.interface';
+import { ITypeDocument } from 'src/common/interfaces/type-document.interface';
 import { IUser } from 'src/common/interfaces/user.interface';
-import { EstablishmentDTO } from 'src/establishment/dto/establishment.dto';
-import { EstablishmentService } from 'src/establishment/establishment.service';
+import { EmployeeDTO } from 'src/employee/dto/employee.dto';
+import { ProductDTO } from 'src/product/dto/product.dto';
 import { PurchaseDTO } from 'src/purchase/dto/purchase.dto';
-import { SubscriptionService } from 'src/subscription/subscription.service';
+import { TypeDocumentDTO } from 'src/type-document/dto/type-document.dto';
+// import { RegisterAssignmentAndaddAdminsDTO } from './dto/registerAssignmentAndaddAdmins.dto';
+// import { RegisterAssignmentAndaddAdminsAndEmployeesDTO } from './dto/registerAssignmentAndaddAdminsAndEmployees.dto';
+// import { RegisterAssignmentAndaddEmployeesDTO } from './dto/registerAssignmentAndaddEmployees.dto';
 import { UserDTO } from './dto/user.dto';
 import { UserService } from './user.service';
 
 @ApiTags('user')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('api/v1/user')
 export class UserController {
-  constructor(
-    private readonly _userSvc: UserService,
-    private readonly _establishmentSvc: EstablishmentService,
-    private readonly _subscriptionSvc: SubscriptionService,
-  ) {}
+  constructor(private readonly _userSvc: UserService) {}
 
   @Post()
   @ApiOperation({ summary: ' Create User ' })
@@ -54,6 +44,12 @@ export class UserController {
   @ApiOperation({ summary: ' Find All Users ' })
   findAll() {
     return this._userSvc.findAll();
+  }
+
+  @Get('names')
+  @ApiOperation({ summary: ' Find All Users Names' })
+  findAllNames() {
+    return this._userSvc.findAllNames();
   }
 
   @Get(':id')
@@ -74,68 +70,79 @@ export class UserController {
     return this._userSvc.delete(id);
   }
 
-  @Post('createEstablishment/:userId')
-  @ApiOperation({ summary: 'Create a Establishment' })
-  async createEstablishment(
-    @Param('userId') userId: IUser,
-    @Body() establishmentDTO: EstablishmentDTO,
-  ): Promise<IUser> {
-    const user = await this._userSvc.findOne(userId);
-
-    if (!user.subscription) {
-      throw new HttpException(
-        'You do not have a subscription',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    if (!user.subscription[0].virtualEstablishmen) {
-      throw new HttpException(
-        'No Permits To Register Your Establishment',
-        HttpStatus.NOT_ACCEPTABLE,
-      );
-    }
-    return this._userSvc.createEstablishment(userId, establishmentDTO);
-  }
-
-  @Post('createAppointment')
-  @ApiOperation({ summary: 'Create a Appointment' })
-  async createAppointment(
-    @Body() appointmentDTO: AppointmentDTO,
-  ): Promise<IUser> {
-    return this._userSvc.createAppointment(appointmentDTO);
-  }
-
-  @Post('createPurchase')
-  @ApiOperation({ summary: 'Create a Purchase' })
-  async createPurchase(@Body() purchaseDTO: PurchaseDTO): Promise<IUser> {
-    return this._userSvc.createPurchase(purchaseDTO);
-  }
-
-  @Post(':userId/establishment/:establishmentId')
-  async addEstablishment(
+  @Get('addPhotoToUser/:userId/:photoId')
+  @ApiOperation({ summary: 'Add Photo To User' })
+  async addPhotosToUser(
     @Param('userId') userId: string,
-    @Param('establishmentId') establishmentId: IEstablishment,
-  ) {
-    const establishment = await this._establishmentSvc.findOne(establishmentId);
-
-    if (!establishment) {
-      throw new HttpException('Establishment Not Found', HttpStatus.NOT_FOUND);
-    }
-
-    return this._userSvc.addEstablishment(userId, establishmentId);
+    @Param('photoId') photoId: IPhoto,
+  ): Promise<IUser> {
+    return await this._userSvc.addPhotosToUser(userId, photoId);
   }
 
-  @Post(':userId/subscription/:subscriptionId')
-  async addSubscription(
-    @Param('userId') userId: string,
-    @Param('subscriptionId') subscriptionId: ISubscription,
-  ) {
-    const subscription = await this._subscriptionSvc.findOne(subscriptionId);
-
-    if (!subscription) {
-      throw new HttpException('Subscription Not Found', HttpStatus.NOT_FOUND);
-    }
-
-    return this._userSvc.addSubscription(userId, subscriptionId);
+  @Post('RegisterDocumentType')
+  @ApiOperation({ summary: ' Register Document Type ' })
+  async registerDocumentType(
+    @Body() typeDocumentDTO: TypeDocumentDTO,
+  ): Promise<ITypeDocument> {
+    return await this._userSvc.registerDocumentType(typeDocumentDTO);
   }
+
+  @Post('RegisterEmployee')
+  @ApiOperation({ summary: ' Register Employee ' })
+  async registerEmployee(@Body() employeeDTO: EmployeeDTO): Promise<IEmployee> {
+    return await this._userSvc.registerEmployee(employeeDTO);
+  }
+
+  @Post('RegisterPurchase')
+  @ApiOperation({ summary: ' Register Purchase ' })
+  async registerPurchase(@Body() purchaseDTO: PurchaseDTO): Promise<IUser> {
+    return await this._userSvc.registerPurchase(purchaseDTO);
+  }
+
+  @Post('RegisterProduct')
+  @ApiOperation({ summary: ' Register Product ' })
+  async registerProduct(@Body() productDTO: ProductDTO): Promise<IProduct> {
+    return await this._userSvc.registerProduct(productDTO);
+  }
+
+  // @Put('registerAssignmentAndaddAdmins/:id')
+  // @ApiOperation({ summary: ' Register Assignment and add Admins ' })
+  // registerAssignmentAndaddAdmins(
+  //   @Param('id') id: string,
+  //   @Body()
+  //   registerAssignmentAndaddAdminsDTO: RegisterAssignmentAndaddAdminsDTO,
+  // ): Promise<IUser> {
+  //   return this._userSvc.registerAssignmentAndaddAdmins(
+  //     id,
+  //     registerAssignmentAndaddAdminsDTO,
+  //   );
+  // }
+
+  // @Put('registerAssignmentAndaddEmployees/:id')
+  // @ApiOperation({ summary: ' Register Assignment and add Employees ' })
+  // registerAssignmentAndaddEmployees(
+  //   @Param('id') id: string,
+  //   @Body()
+  //   registerAssignmentAndaddEmployeeDTO: RegisterAssignmentAndaddEmployeesDTO,
+  // ): Promise<IUser> {
+  //   return this._userSvc.registerAssignmentAndaddEmployees(
+  //     id,
+  //     registerAssignmentAndaddEmployeeDTO,
+  //   );
+  // }
+
+  // @Put('registerAssignmentAndaddAdminsAndEmployees/:id')
+  // @ApiOperation({
+  //   summary: ' Register Assignment and add Admins and add Employees ',
+  // })
+  // registerAssignmentAndaddAdminsAndEmployees(
+  //   @Param('id') id: string,
+  //   @Body()
+  //   registerAssignmentAndaddAdminsAndAddEmployeeDTO: RegisterAssignmentAndaddAdminsAndEmployeesDTO,
+  // ): Promise<{ admin: IUser; assignment: IAssignment }> {
+  //   return this._userSvc.registerAssignmentAndaddAdminsAndEmployees(
+  //     id,
+  //     registerAssignmentAndaddAdminsAndAddEmployeeDTO,
+  //   );
+  // }
 }

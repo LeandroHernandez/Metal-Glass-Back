@@ -4,12 +4,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
-import { EstablishmentModule } from './establishment/establishment.module';
 import { CategoryModule } from './category/category.module';
-import { SubscriptionModule } from './subscription/subscription.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { PurchaseModule } from './purchase/purchase.module';
-import { CedeModule } from './cede/cede.module';
 import { EmployeeModule } from './employee/employee.module';
 import { ServiceModule } from './service/service.module';
 import { ProductModule } from './product/product.module';
@@ -18,6 +15,18 @@ import { PurchaseStatusModule } from './purchase-status/purchase-status.module';
 import { AppointmentStatusModule } from './appointment-status/appointment-status.module';
 import { TypeDocumentModule } from './type-document/type-document.module';
 import { PhotoModule } from './photo/photo.module';
+import { ClientModule } from './client/client.module';
+import { EmployeeAuthModule } from './auth/employee-auth/employee-auth.module';
+import { AssignmentModule } from './assignment/assignment.module';
+import { AccessoryModule } from './accessory/accessory.module';
+import { ProfileModule } from './profile/profile.module';
+import { GlassModule } from './glass/glass.module';
+import { AcrylicModule } from './acrylic/acrylic.module';
+import { WindowModule } from './window/window.module';
+import { AditionalReferenceModule } from './aditional-reference/aditional-reference.module';
+import { QuoteModule } from './quote/quote.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { MailService } from '@sendgrid/mail';
 
 @Module({
   imports: [
@@ -29,23 +38,40 @@ import { PhotoModule } from './photo/photo.module';
       // useCreateIndex: true,
       // useFindAndModify: false,
     }),
+    MailerModule.forRoot({
+      transport: {
+        host: 'smtp.gmail.com',
+        auth: {
+          user: 'johanhernandezvelez@gmail.com',
+          pass: 'ContrasenaJLHV1*',
+        },
+      },
+    }),
     UserModule,
-    EstablishmentModule,
     CategoryModule,
-    SubscriptionModule,
     AppointmentModule,
     PurchaseModule,
-    CedeModule,
+    // CedeModule,
     EmployeeModule,
     ServiceModule,
     ProductModule,
     AuthModule,
+    EmployeeAuthModule,
     PurchaseStatusModule,
     AppointmentStatusModule,
     TypeDocumentModule,
     PhotoModule,
+    ClientModule,
+    AssignmentModule,
+    AccessoryModule,
+    ProfileModule,
+    GlassModule,
+    AcrylicModule,
+    WindowModule,
+    AditionalReferenceModule,
+    QuoteModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, MailService],
 })
 export class AppModule {}

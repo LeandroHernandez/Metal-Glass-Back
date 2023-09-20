@@ -1,14 +1,17 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AppointmentModule } from 'src/appointment/appointment.module';
-import { CedeModule } from 'src/cede/cede.module';
+import { AssignmentModule } from 'src/assignment/assignment.module';
+import { ClientModule } from 'src/client/client.module';
 import { USER } from 'src/common/models/models';
-import { EstablishmentModule } from 'src/establishment/establishment.module';
+import { EmployeeModule } from 'src/employee/employee.module';
+import { PhotoModule } from 'src/photo/photo.module';
+import { ProductModule } from 'src/product/product.module';
 import { PurchaseModule } from 'src/purchase/purchase.module';
-import { SubscriptionModule } from 'src/subscription/subscription.module';
+import { TypeDocumentModule } from 'src/type-document/type-document.module';
 import { UserSchema } from './schema/user.schema';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
+import { MailService } from '@sendgrid/mail';
 
 @Module({
   imports: [
@@ -20,14 +23,16 @@ import { UserService } from './user.service';
         },
       },
     ]),
-    EstablishmentModule,
-    AppointmentModule,
+    PhotoModule,
+    TypeDocumentModule,
+    EmployeeModule,
+    ClientModule,
+    ProductModule,
     PurchaseModule,
-    SubscriptionModule,
-    CedeModule,
+    AssignmentModule,
   ],
   controllers: [UserController],
-  providers: [UserService],
+  providers: [UserService, MailService],
   exports: [UserService],
 })
 export class UserModule {}

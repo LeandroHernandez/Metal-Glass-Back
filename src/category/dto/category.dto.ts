@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { ICategory } from 'src/common/interfaces/category.interface';
 
 export class CategoryDTO {
   @ApiProperty()
@@ -8,10 +7,7 @@ export class CategoryDTO {
   @IsString()
   name: string;
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  description?: string;
-  @ApiProperty()
-  fatherCategory?: ICategory;
-  @ApiProperty()
-  subCategorys?: ICategory[];
+  description: string;
 }

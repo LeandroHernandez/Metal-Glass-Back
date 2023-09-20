@@ -11,11 +11,11 @@ import { IPhoto } from './photo.interface';
 export interface ICede extends Document {
   id?: string;
   establishment?: IEstablishment[];
-  name: string;
+  cedeName: string;
   ubication: IUbication;
   assignedEmployees?: IEmployee[];
-  servicesCatalog?: Array<IService[]>;
-  productsCatalog?: Array<IProduct[]>;
+  servicesCatalog?: IService[] | Array<IService[]>;
+  productsCatalog?: IProduct[] | Array<IProduct[]>;
   datingHistory?: IAppointment[];
   shoppingHistory?: IPurchase[];
   // photos?: any[];

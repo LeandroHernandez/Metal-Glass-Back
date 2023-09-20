@@ -5,7 +5,8 @@ export class ProductDTO {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  name: string;
+  // name: string;
+  productName: string;
   @ApiProperty()
   @IsOptional()
   @IsString()
@@ -18,4 +19,14 @@ export class ProductDTO {
   @IsOptional()
   @IsNumber()
   discount: number;
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  amount: number;
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  numberOfRequests: number;
+  @IsOptional()
+  photos: Array<string>;
 }

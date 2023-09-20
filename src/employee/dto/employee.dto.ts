@@ -1,15 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { ICede } from 'src/common/interfaces/cede.interface';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 export class EmployeeDTO {
   @ApiProperty()
-  @IsOptional()
-  assignedCedes?: ICede[];
-  @ApiProperty()
   @IsNotEmpty()
-  @IsString()
-  documentType: string;
+  // @IsString()
+  // documentTypeId: ITypeDocument;
+  documentTypeId: string;
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
@@ -25,7 +22,17 @@ export class EmployeeDTO {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
+  phoneNumber: string;
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  username: string;
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
   password: string;
-  // permissions?: Ipermission;
-  // chores: IChore;
 }

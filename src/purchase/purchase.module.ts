@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PURCHASES } from 'src/common/models/models';
+import { ProductModule } from 'src/product/product.module';
 import { PurchaseController } from './purchase.controller';
 import { PurchaseService } from './purchase.service';
 import { PurchaseSchema } from './schema/purchase.schema';
@@ -15,6 +16,7 @@ import { PurchaseSchema } from './schema/purchase.schema';
         },
       },
     ]),
+    ProductModule,
   ],
   controllers: [PurchaseController],
   providers: [PurchaseService],

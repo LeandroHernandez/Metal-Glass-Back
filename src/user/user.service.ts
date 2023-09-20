@@ -6,24 +6,38 @@ import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
 import { USER } from 'src/common/models/models';
 import { Model } from 'mongoose';
-import { EstablishmentDTO } from 'src/establishment/dto/establishment.dto';
-import { EstablishmentService } from 'src/establishment/establishment.service';
-import { AppointmentDTO } from 'src/appointment/dto/appointment.dto';
-import { AppointmentService } from 'src/appointment/appointment.service';
+import { PhotoService } from 'src/photo/photo.service';
+import { IPhoto } from 'src/common/interfaces/photo.interface';
+import { TypeDocumentDTO } from 'src/type-document/dto/type-document.dto';
+import { TypeDocumentService } from 'src/type-document/type-document.service';
+import { ITypeDocument } from 'src/common/interfaces/type-document.interface';
+import { EmployeeService } from 'src/employee/employee.service';
+import { ProductService } from 'src/product/product.service';
+import { EmployeeDTO } from 'src/employee/dto/employee.dto';
+import { IEmployee } from 'src/common/interfaces/employee.interface';
+import { ProductDTO } from 'src/product/dto/product.dto';
+import { IProduct } from 'src/common/interfaces/product.interface';
 import { PurchaseDTO } from 'src/purchase/dto/purchase.dto';
 import { PurchaseService } from 'src/purchase/purchase.service';
-import { CedeService } from 'src/cede/cede.service';
-import { IEstablishment } from 'src/common/interfaces/establishment.interface';
-import { ISubscription } from 'src/common/interfaces/subscription.interface';
+import { AssignmentService } from 'src/assignment/assignment.service';
+// import { IAssignment } from 'src/common/interfaces/assignment.interface';
+// import { RegisterAssignmentAndaddAdminsDTO } from './dto/registerAssignmentAndaddAdmins.dto';
+// import { RegisterAssignmentAndaddAdminsAndEmployeesDTO } from './dto/registerAssignmentAndaddAdminsAndEmployees.dto';
+// import { RegisterAssignmentAndaddEmployeesDTO } from './dto/registerAssignmentAndaddEmployees.dto';
+import { MailService } from '@sendgrid/mail';
 
 @Injectable()
 export class UserService {
+  private user: IUser | null = null;
   constructor(
     @InjectModel(USER.name) private readonly _model: Model<IUser>,
-    private readonly _establishmentSvc: EstablishmentService,
-    private readonly _cedeSvc: CedeService,
-    private readonly _appointmentSvc: AppointmentService,
+    private readonly _photoSvc: PhotoService,
+    private readonly _typeDocumentSvc: TypeDocumentService,
+    private readonly _employeeSvc: EmployeeService,
+    private readonly _productSvc: ProductService,
     private readonly _purchaseSvc: PurchaseService,
+    private readonly _assignmentSvc: AssignmentService,
+    private readonly _mailSvc: MailService,
   ) {}
 
   async checkPassword(password: string, passwordDB: string): Promise<boolean> {
@@ -31,9 +45,7 @@ export class UserService {
   }
 
   async findByUsername(username: string) {
-    // async findByEamil(email: string) {
     return await this._model.findOne({ username });
-    // return await this._model.findOne({ email })
   }
 
   async hashPassword(password: string): Promise<string> {
@@ -43,149 +55,163 @@ export class UserService {
   async create(userDTO: UserDTO): Promise<IUser> {
     const hash = await this.hashPassword(userDTO.password);
     const newUser = new this._model({ ...userDTO, password: hash });
-    return await newUser.save();
+    await newUser.save();
+    const documentType = await this._typeDocumentSvc.findOne(
+      userDTO.documentTypeId,
+    );
+    return this._model
+      .findByIdAndUpdate(
+        newUser.id,
+        {
+          $addToSet: { documentType: documentType },
+        },
+        { new: true },
+      )
+      .populate('documentType')
+      .populate('whatIHaveAssignedToOthers')
+      .populate('whatOthersHaveAssignedToMe')
+      .populate('photos');
   }
 
   async findAll(): Promise<IUser[]> {
     return await this._model
       .find()
-      .populate('establishments')
-      .populate('requestedAppointments')
-      .populate('requestedPurchases')
-      .populate('subscription');
+      .populate('documentType')
+      .populate('documentType')
+      .populate('whatIHaveAssignedToOthers')
+      .populate('whatOthersHaveAssignedToMe')
+      .populate('photos');
+  }
+
+  async findAllNames(): Promise<IUser[]> {
+    return await this._model.aggregate([
+      { $project: { name: { $concat: ['$names', ' ', '$surnames'] }, _id: 0 } },
+    ]);
   }
 
   async findOne(id: IUser): Promise<IUser> {
     return await this._model
       .findById(id)
-      .populate('establishments')
-      .populate('requestedAppointments')
-      .populate('requestedPurchases')
-      .populate('subscription');
+      .populate('documentType')
+      .populate('whatIHaveAssignedToOthers')
+      .populate('whatOthersHaveAssignedToMe')
+      .populate('photos');
   }
 
   async update(id: string, userDTO: UserDTO): Promise<IUser> {
     const hash = await this.hashPassword(userDTO.password);
-    const user = { ...userDTO, password: hash };
+    const user = {
+      ...userDTO,
+      password: hash,
+      documentType: userDTO.documentTypeId,
+    };
     return await this._model
       .findByIdAndUpdate(id, user, { new: true })
-      .populate('establishments')
-      .populate('requestedAppointments')
-      .populate('requestedPurchases')
-      .populate('subscription');
+      .populate('documentType')
+      .populate('whatIHaveAssignedToOthers')
+      .populate('whatOthersHaveAssignedToMe')
+      .populate('photos');
   }
 
   async delete(id: IUser) {
     const user = await this.findOne(id);
-    if (user.establishments) {
-      user.establishments.forEach((establishment) => {
-        this._establishmentSvc.delete(establishment.id);
-      });
-    }
-    if (user.subscription) {
-      await this._model.findByIdAndUpdate(id, {
-        $unset: { subscription: null },
+    if (user.photos) {
+      user.photos.forEach((photo) => {
+        this._photoSvc.delete(photo.id);
       });
     }
     await this._model.findByIdAndDelete(id);
     return { status: HttpStatus.OK, msg: 'Delete' };
   }
 
-  async createEstablishment(
-    userId: IUser,
-    establishmentDTO: EstablishmentDTO,
-  ): Promise<IUser> {
-    let establishment = await this._establishmentSvc.create(establishmentDTO);
-    establishment = await this._establishmentSvc.addOwner(
-      establishment.id,
-      userId,
-    );
-    return this._model
+  async addPhotosToUser(userId: string, photo: IPhoto): Promise<IUser> {
+    return await this._model
       .findByIdAndUpdate(
         userId,
-        {
-          $addToSet: { establishments: establishment },
-        },
+        { $addToSet: { photos: photo } },
         { new: true },
       )
-      .populate('establishments')
-      .populate('requestedAppointments')
-      .populate('requestedPurchases')
-      .populate('subscription');
+      .populate('documentType')
+      .populate('whatIHaveAssignedToOthers')
+      .populate('whatOthersHaveAssignedToMe')
+      .populate('photos');
   }
 
-  async createAppointment(appointmentDTO: AppointmentDTO): Promise<IUser> {
-    const appointment = await this._cedeSvc.createAppointment(appointmentDTO);
-    return this._model
-      .findByIdAndUpdate(
-        appointmentDTO.clientId,
-        {
-          $addToSet: { requestedAppointments: appointment },
-        },
-        { new: true },
-      )
-      .populate('establishments')
-      .populate('requestedAppointments')
-      .populate('requestedPurchases')
-      .populate('subscription');
+  async registerDocumentType(
+    typeDocumentDTO: TypeDocumentDTO,
+  ): Promise<ITypeDocument> {
+    const documentType = await this._typeDocumentSvc.create(typeDocumentDTO);
+    return documentType;
   }
 
-  async createPurchase(purchaseDTO: PurchaseDTO): Promise<IUser> {
+  async registerEmployee(employeeDTO: EmployeeDTO): Promise<IEmployee> {
+    const employee = await this._employeeSvc.create(employeeDTO);
+    return employee;
+  }
+
+  async registerProduct(productDTO: ProductDTO): Promise<IProduct> {
+    const product = await this._productSvc.create(productDTO);
+    return product;
+  }
+
+  async registerPurchase(purchaseDTO: PurchaseDTO): Promise<IUser> {
     const purchase = await this._purchaseSvc.create(purchaseDTO);
-    return this._model
-      .findByIdAndUpdate(
-        purchaseDTO.clientId,
-        {
-          $addToSet: { requestedPurchases: purchase },
-        },
-        { new: true },
-      )
-      .populate('establishments')
-      .populate('requestedAppointments')
-      .populate('requestedPurchases')
-      .populate('subscription');
-  }
-
-  async addEstablishment(
-    userId: string,
-    establishmentId: IEstablishment,
-  ): Promise<IUser> {
     return await this._model
       .findByIdAndUpdate(
-        userId,
-        {
-          $addToSet: { establishments: establishmentId },
-        },
+        purchaseDTO.userId,
+        { $addToSet: { historyOfAdvisedPurchases: purchase } },
         { new: true },
       )
-      .populate('establishments')
-      .populate('requestedAppointments')
-      .populate('requestedPurchases')
-      .populate('subscription');
+      .populate('documentType')
+      .populate('whatIHaveAssignedToOthers')
+      .populate('whatOthersHaveAssignedToMe')
+      .populate('photos');
   }
 
-  async addSubscription(
-    userId: string,
-    subscriptionId: ISubscription,
-  ): Promise<IUser> {
-    await this._model.findByIdAndUpdate(
-      userId,
-      {
-        $unset: { subscription: null },
-      },
-      { new: true },
-    );
-    return await this._model
-      .findByIdAndUpdate(
-        userId,
-        {
-          $addToSet: { subscription: subscriptionId },
-        },
-        { new: true },
-      )
-      .populate('establishments')
-      .populate('requestedAppointments')
-      .populate('requestedPurchases')
-      .populate('subscription');
+  async validateDocument(validateDTO: {
+    typeDocument: string | any;
+    documentNumber: string | any;
+  }): Promise<IUser | null> {
+    const user = await this._model.findOne(validateDTO);
+    console.log({ validateDTO, user });
+    return user;
+    // await this._model
+    //   .findByIdAndUpdate(
+    //     purchaseDTO.userId,
+    //     { $addToSet: { historyOfAdvisedPurchases: purchase } },
+    //     { new: true },
+    //   )
+    //   .populate('documentType')
+    //   .populate('whatIHaveAssignedToOthers')
+    //   .populate('whatOthersHaveAssignedToMe')
+    //   .populate('photos');
+  }
+
+  async generatePassword(id: IUser | any, email: string): Promise<string> {
+    // const email = this._model.findById(id, { email: 1, _id: 0 });
+    const password = Math.random().toString(36).substring(2, 12);
+    const hash = await this.hashPassword(password);
+    // console.log({ id, email: email, password, hash });
+    await this._model.findByIdAndUpdate(id, { password: hash }, { new: true });
+    // const purchase = await this._purchaseSvc.create(purchaseDTO);
+    this._mailSvc.setApiKey(process.env.SENDGRID_API_KEY);
+    const msg = {
+      // to: 'juliethm04052003@gmail.com', // Change to your recipient
+      to: `${email}`, // Change to your recipient
+      from: 'johanhernandezvelez@gmail.com', // Change to your verified sender
+      subject: 'Generación de clave',
+      text: 'METAL GLASS',
+      html: `<p>Aquí está su nueva clave: <b>${password}</b> 
+      procure cambiarla a una que pueda recordar facilmente</p>`,
+    };
+    this._mailSvc
+      .send(msg)
+      .then(() => {
+        console.log('Email sent');
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    return password;
   }
 }

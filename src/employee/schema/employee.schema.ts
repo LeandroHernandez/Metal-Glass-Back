@@ -2,23 +2,33 @@ import * as mongoose from 'mongoose';
 
 export const EmployeeSchema = new mongoose.Schema(
   {
-    establishment: {
+    // documentType: { type: String, required: true },
+    documentType: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'establishments',
+      ref: 'types_documents',
       required: false,
     },
-    assignedCedes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'cedes',
-        required: false,
-      },
-    ],
-    documentType: { type: String, required: true },
     documentNumber: { type: String, required: true },
     names: { type: String, required: true },
     surnames: { type: String, required: true },
-    password: { type: String, required: true },
+    phoneNumber: { type: String, required: false },
+    email: { type: String, required: false },
+    username: { type: String, required: true },
+    password: { type: String, required: false },
+    historyOfAdvisedPurchases: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'purchases',
+        required: false,
+      },
+    ],
+    historyOfCounselingAppointments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'appointments',
+        required: false,
+      },
+    ],
     photos: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -26,8 +36,23 @@ export const EmployeeSchema = new mongoose.Schema(
         required: false,
       },
     ],
-    // permissions?: Ipermission;
-    // chores: IChore;
+    whatIHaveAssignedToOthers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'assignments',
+        required: false,
+      },
+    ],
+    whatOthersHaveAssignedToMe: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'assignments',
+        required: false,
+      },
+    ],
   },
   { timestamps: true },
 );
+
+EmployeeSchema.index({ documentNumbe: 1 }, { unique: true });
+EmployeeSchema.index({ username: 1 }, { unique: true });

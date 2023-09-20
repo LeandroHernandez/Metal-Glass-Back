@@ -21,9 +21,11 @@ import {
 } from '@nestjs/common';
 // import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { IPhoto } from 'src/common/interfaces/photo.interface';
 import { IProduct } from 'src/common/interfaces/product.interface';
 import { ProductDTO } from './dto/product.dto';
 import { ProductService } from './product.service';
+import { ProductFilterDTO } from './dto/product-filter.dto';
 
 @ApiTags('Product')
 @Controller('api/v1/product')
@@ -63,13 +65,20 @@ export class ProductController {
     return await this._productSvc.delete(id);
   }
 
-  // @Post('addPhotosToProduct/:id')
-  // @ApiOperation({ summary: ' Add Photos To Product ' })
-  // @UseInterceptors(FilesInterceptor('file'))
-  // addPhotosToProduct(
-  //   @Param('id') id: string,
-  //   @UploadedFiles() photos: Express.Multer.File,
-  // ): Promise<IProduct> {
-  //   return this._productSvc.addPhotosToProduct(id, photos);
-  // }
+  @Get('addPhotoToProduct/:productId/:photoId')
+  @ApiOperation({ summary: 'Add Photo To Product' })
+  async addPhotosToProduct(
+    @Param('productId') productId: string,
+    @Param('photoId') photoId: IPhoto,
+  ): Promise<IProduct> {
+    return await this._productSvc.addPhotosToProduct(productId, photoId);
+  }
+
+  @Post('/filter')
+  @ApiOperation({ summary: 'Filt Products' })
+  async filtProducts(
+    @Body() FilterDTO: ProductFilterDTO,
+  ): Promise<Array<IProduct>> {
+    return await this._productSvc.filtProducts(FilterDTO);
+  }
 }

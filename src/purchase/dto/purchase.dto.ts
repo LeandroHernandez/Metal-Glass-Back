@@ -1,29 +1,35 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { ICede } from 'src/common/interfaces/cede.interface';
-import { IEstablishment } from 'src/common/interfaces/establishment.interface';
+import { IClient } from 'src/common/interfaces/client.interface';
+import { IEmployee } from 'src/common/interfaces/employee.interface';
 import { IProduct } from 'src/common/interfaces/product.interface';
 import { IUser } from 'src/common/interfaces/user.interface';
 
 export class PurchaseDTO {
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  establishmentId: IEstablishment;
+  userId: IUser;
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  userName: string;
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  employeeId: IEmployee;
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  employeeName: string;
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  cedeId: ICede;
+  clientId: IClient;
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  clientId: IUser;
-  //   date: Date;
-  //   hora: Date;
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  state: string;
+  clientName: string;
   @ApiProperty()
   @IsNotEmpty()
   @IsNumber()
@@ -38,5 +44,10 @@ export class PurchaseDTO {
   totalValue: number;
   @ApiProperty()
   @IsNotEmpty()
-  selectedProducts?: IProduct[];
+  selectedProducts: Array<{
+    // product: IProduct[];
+    product?: IProduct;
+    productName?: string;
+    quantityOfThisProductInThePurchase: number;
+  }>;
 }

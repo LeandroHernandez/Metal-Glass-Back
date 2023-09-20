@@ -18,5 +18,6 @@ import { TypeDocumentService } from './type-document.service';
   ],
   controllers: [TypeDocumentController],
   providers: [TypeDocumentService],
+  exports: [TypeDocumentService],
 })
 export class TypeDocumentModule {}

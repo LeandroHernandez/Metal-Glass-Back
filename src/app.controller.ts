@@ -1,13 +1,16 @@
 /* eslint-disable prettier/prettier */
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
+import { ApiOperation } from '@nestjs/swagger';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
+  @ApiOperation({ summary: ' Test ' })
   getHello(): string {
+    this.appService.sendMail();
     return this.appService.getHello();
   }
 }

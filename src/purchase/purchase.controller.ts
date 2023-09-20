@@ -11,6 +11,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IPurchase } from 'src/common/interfaces/purchase.interface';
 import { PurchaseDTO } from './dto/purchase.dto';
 import { PurchaseService } from './purchase.service';
+import { PurchaseFilterDTO } from './dto/purchase-filter.dto';
 
 @ApiTags('purchase')
 @Controller('api/v1/purchase')
@@ -48,5 +49,13 @@ export class PurchaseController {
   @ApiOperation({ summary: ' Delete Purchase ' })
   delete(@Param('id') id: string) {
     return this._purchasetSvc.delete(id);
+  }
+
+  @Post('/filter')
+  @ApiOperation({ summary: 'Filt Purchases' })
+  async filtPurchases(
+    @Body() FilterDTO: PurchaseFilterDTO,
+  ): Promise<Array<IPurchase>> {
+    return await this._purchasetSvc.filtPurchases(FilterDTO);
   }
 }

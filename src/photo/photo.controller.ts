@@ -7,21 +7,22 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IPhoto } from 'src/common/interfaces/photo.interface';
 import { PhotoDTO } from './dto/photo.dto';
 import { PhotoService } from './photo.service';
 
+@ApiTags('photo')
 @Controller('api/v1/photo')
 export class PhotoController {
   constructor(private readonly _photoSvc: PhotoService) {}
 
   @Post()
   @ApiOperation({ summary: ' Create Photo ' })
-  // create(@Body() photoDTO: PhotoDTO): string {
-  create(): string {
-    // return this._photoSvc.create(photoDTO);
-    return 'Este metodo del controlador se encuentra inhabilitado ';
+  create(@Body() photoDTO: PhotoDTO): Promise<IPhoto> {
+    // create() {
+    return this._photoSvc.create(photoDTO);
+    // return 'Este metodo del controlador se encuentra inhabilitado ';
   }
 
   @Get()

@@ -11,8 +11,9 @@ export interface IEstablishment extends Document {
   id?: string;
   owner?: IUser[];
   name: string;
+  description?: string;
   categorys?: ICategory[];
-  cedes: ICede[];
+  cedes?: ICede[];
   employees?: IEmployee[];
   serviceCatalog?: IService[];
   productCatalog?: IProduct[];
