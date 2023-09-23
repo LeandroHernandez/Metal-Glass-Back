@@ -1,8 +1,5 @@
 {
   "version": 2,
-  "env": {
-    "URI_MONGODB": "mongodb://localhost:27017/metalGlass"
-  },
   "builds": [
     {
       "src": "src/main.ts",
