@@ -10,7 +10,7 @@ export class AppController {
   @Get()
   @ApiOperation({ summary: ' Test ' })
   getHello(): string {
-    this.appService.sendMail();
+    // this.appService.sendMail();
     return this.appService.getHello();
   }
 }
