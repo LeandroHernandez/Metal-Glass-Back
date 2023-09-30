@@ -31,11 +31,11 @@ import { MailService } from '@sendgrid/mail';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      // envFilePath: ['.env.development'],
-      // isGlobal: true,
+      envFilePath: ['.env.development'],
+      isGlobal: true,
     }),
-    // MongooseModule.forRoot(process.env.URI_MONGODB, {
-    MongooseModule.forRoot('mongodb://localhost:27017/metalGlass', {}),
+    MongooseModule.forRoot(process.env.URI_MONGODB, {}),
+    // MongooseModule.forRoot('mongodb://localhost:27017/metalGlass', {}),
     MailerModule.forRoot({
       transport: {
         host: 'smtp.gmail.com',
